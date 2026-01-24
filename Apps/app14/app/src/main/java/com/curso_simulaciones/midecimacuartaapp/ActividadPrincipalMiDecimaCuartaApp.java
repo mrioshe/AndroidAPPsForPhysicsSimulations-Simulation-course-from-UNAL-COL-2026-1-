@@ -261,7 +261,7 @@ public class ActividadPrincipalMiDecimaCuartaApp extends Activity implements Run
         //cambiar color de marciano_1 en el instante que su tamaño
         //esté en 40% mayor que el inicial
         if (aumento_1 > 1.4f) {
-            marciano_1.setColor(Color.rgb(100, 255, 100)); // Verde más claro
+            marciano_1.setColor(Color.rgb(100, 0, 100)); // Verde más claro
         }
 
         //modelo del selenita_1
