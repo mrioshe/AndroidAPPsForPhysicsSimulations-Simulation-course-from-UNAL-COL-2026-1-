@@ -33,6 +33,7 @@ android {
 
 dependencies {
 
+    implementation(files("libs/simulphysics.jar"))
     implementation(libs.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
