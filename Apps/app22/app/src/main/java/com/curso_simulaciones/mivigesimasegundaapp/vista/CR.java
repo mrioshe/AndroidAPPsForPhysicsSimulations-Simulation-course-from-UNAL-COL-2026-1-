@@ -4,11 +4,9 @@ public class CR {
     public static float anchoPizarra;
     public static float altoPizarra;
 
-
-    public CR(){
+    public CR() {
 
     }
-
 
     /**
      * Método para convertir porcentaje de
@@ -24,9 +22,6 @@ public class CR {
 
     }
 
-
-
-
     /**
      * Método para convertir porcentaje de
      * posición en Y a pixeles.
@@ -40,7 +35,6 @@ public class CR {
         return pxY;
 
     }
-
 
     /**
      * Dada una longitud pcL en porcentaje
@@ -58,26 +52,22 @@ public class CR {
 
             pxL = pcL * altoPizarra / 100f;
 
-
         } else {
 
             pxL = pcL * anchoPizarra / 100f;
         }
 
-
         return pxL;
 
     }
 
-
-
     /**
-     * Convierte pixeles de uan posicón en
+     * Convierte pixeles de una posición en
      * X a porcentaje.
      * @param pxX
      * @return
      */
-    public static float  pxXApc(float pxX) {
+    public static float pxXApc(float pxX) {
 
         float pcX = pxX * 100f / anchoPizarra;
 
@@ -85,15 +75,13 @@ public class CR {
 
     }
 
-
-
     /**
      * Convierte pixeles de una posición en
      * Y a porcentaje.
      * @param pxY
      * @return
      */
-    public static float  pxYApc(float pxY) {
+    public static float pxYApc(float pxY) {
 
         float pcY = pxY * 100f / altoPizarra;
 
@@ -101,17 +89,10 @@ public class CR {
 
     }
 
-
-    /*Convierte pixeles referidas
-      al menor entre el ancho y el
-      alto en porcentaje
-  */
-
     /**
      * Dada una longitud pxL en pixeles la
      * convierte a porcentaje referido al menor entre
-     * el ancho y el alto.
-     * Pizarra.
+     * el ancho y el alto de la Pizarra.
      * @param pxL
      * @return
      */
@@ -121,14 +102,12 @@ public class CR {
 
         if (CR.anchoPizarra > altoPizarra) {
 
-            pcL = pxL * 100f/ altoPizarra ;
-
+            pcL = pxL * 100f / altoPizarra;
 
         } else {
 
-            pcL = pxL * 100f/ anchoPizarra;
+            pcL = pxL * 100f / anchoPizarra;
         }
-
 
         return pcL;
 

@@ -5,58 +5,46 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-
 import com.curso_simulaciones.mivigesimasegundaapp.datos.AlmacenDatosRAM;
 import com.curso_simulaciones.mivigesimasegundaapp.vista.CR;
 import com.curso_simulaciones.mivigesimasegundaapp.vista.Pizarra;
-
-// Importar desde la librería simulphysics
-import com.curso_simulaciones.simulphysics.objetos_laboratorio.ObjetoLaboratorio;
-import com.curso_simulaciones.simulphysics.objetos_laboratorio.Masa;
-import com.curso_simulaciones.simulphysics.objetos_laboratorio.Polea;
-import com.curso_simulaciones.simulphysics.objetos_laboratorio.Flecha;
-import com.curso_simulaciones.simulphysics.objetos_laboratorio.Regla;
 import com.curso_simulaciones.simulphysics.objetos_laboratorio.CuerpoRectangular;
 import com.curso_simulaciones.simulphysics.objetos_laboratorio.Cuerda;
 import com.curso_simulaciones.simulphysics.objetos_laboratorio.Marca;
+import com.curso_simulaciones.simulphysics.objetos_laboratorio.Masa;
+import com.curso_simulaciones.simulphysics.objetos_laboratorio.ObjetoLaboratorio;
+import com.curso_simulaciones.simulphysics.objetos_laboratorio.Polea;
 
 public class ActividadControladora extends Activity {
 
-
     private Pizarra pizarra;
 
-    private Masa masa_1, masa_2;
-    private Polea polea_1, polea_2;
-    private Flecha flecha_1, flecha_2, flecha_3;
-    private Regla regla_1, regla_2;
-    private CuerpoRectangular barra;
-    private Cuerda cuerda_1, cuerda_2, cuerda_3, cuerda_4;
-    private Marca marca;
+    private Masa masa_1, masa_2, masa_3;
+    private Polea polea_azul_izq, polea_azul_der, polea_verde_P;
+    private CuerpoRectangular cuerpo_amarillo, base_oscura;
+    private Cuerda cuerda_horizontal, cuerda_m1, cuerda_vertical_a_P, cuerda_m2, cuerda_m3;
+    private Marca marca_P, marca_m1, marca_m2, marca_m3;
 
     private ObjetoLaboratorio[] objetos = new ObjetoLaboratorio[20];
-
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         gestionarResolucion();
-
 
         //para crear elementos de la GUI
         crearElementosGUI();
 
-        //para informar cómo se debe pegar el adminitrador de
+        //para informar cómo se debe pegar el administrador de
         //diseño obtenido con el método GUI
-        ViewGroup.LayoutParams parametro_layout_principal = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-
+        ViewGroup.LayoutParams parametro_layout_principal = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
 
         //pegar el contenedor con la GUI
         this.setContentView(crearGUI(), parametro_layout_principal);
 
-
     }//fin onCreate
-
 
     /*Método auxiliar para asuntos de resolución*/
     private void gestionarResolucion() {
@@ -74,16 +62,13 @@ public class ActividadControladora extends Activity {
     /*método responsable de la creación de los elementos de la GUI*/
     private void crearElementosGUI() {
 
-
         //crear pizarra sabiendo de antemano sus dimensiones
         pizarra = new Pizarra(this);
         pizarra.setBackgroundColor(Color.WHITE);
 
         crearObjetosLaboratorio();
 
-
     }//fin crearElementosGUI
-
 
     /*método responsable de administrar el diseño de la GUI*/
     private LinearLayout crearGUI() {
@@ -92,7 +77,6 @@ public class ActividadControladora extends Activity {
         LinearLayout linear_principal = new LinearLayout(this);
         linear_principal.setOrientation(LinearLayout.VERTICAL);
 
-
         //pegar pizarra a linearArriba
         linear_principal.addView(pizarra);
 
@@ -100,11 +84,9 @@ public class ActividadControladora extends Activity {
 
     }//fin crearGUI
 
-
-
     /*
-     Crea los objetos cuerpo rígido con su estado inicia
-     -X esta en porcentaje del annco del canvas
+     Crea los objetos cuerpo rígido con su estado inicial
+     -X esta en porcentaje del ancho del canvas
      -Y está en porcentaje del alto del canvas
      -Cualquier otra dimensión está en porcentaje del menor
       entre el alto y el ancho del canvas
@@ -115,139 +97,177 @@ public class ActividadControladora extends Activity {
           Coordenadas de puntos básicos y
           dimensiones de los elementos
          */
-        //radio de las poleas
+
+        // Dimensiones del rectángulo amarillo vertical
+        float ancho_rectangulo = CR.pcApxL(45);
+        float alto_rectangulo = CR.pcApxL(55);
+
+        // Posición del rectángulo amarillo (centrado)
+        float x_rectangulo = CR.pcApxX(50);
+        float y_rectangulo = CR.pcApxY(45);
+
+        // Radio de las poleas azules
         float radio = CR.pcApxL(5);
 
-        //dimensiones de cada masa: m1 y m2
-        float ancho_bloque = 2 * radio;
-        float alto_bloque = radio;
+        // Radio de la polea verde P (mitad del tamaño de las azules)
+        float radio_verde = radio / 2f;
 
-        //coordenadas de las masas
-        //abscisa y ordenada del centro de la masa 1
-        float x1 = CR.pcApxX(51) + radio;
-        float y1 = CR.pcApxY(34.2f);
-        //abscisa y ordenada del centro de la masa 2
-        float x2 = x1 - 3 * radio;
-        float y2 = CR.pcApxY(81.5f);
+        // Coordenadas de las esquinas superiores del rectángulo
+        float esquina_sup_izq_x = x_rectangulo - 0.5f * ancho_rectangulo;
+        float esquina_sup_izq_y = y_rectangulo - 0.5f * alto_rectangulo;
+        float esquina_sup_der_x = x_rectangulo + 0.5f * ancho_rectangulo;
+        float esquina_sup_der_y = y_rectangulo - 0.5f * alto_rectangulo;
 
-        //coordenadas de las poleas
-        //abscisa y ordenada del centro de la polea 1
-        float xp1 = x1 - radio;
-        float yp1 = CR.pcApxY(10f);
-        //abscisa y ordenada del centro de la polea 2
-        float xp2 = x2;
-        float yp2 = y2 - 3 * radio;
+        // Poleas azules en las esquinas superiores
+        // Sus centros están desplazados para que el borde toque tangencialmente la esquina
+        float xp_azul_izq = esquina_sup_izq_x - radio;
+        float yp_azul_izq = esquina_sup_izq_y - radio;
 
+        float xp_azul_der = esquina_sup_der_x + radio;
+        float yp_azul_der = esquina_sup_der_y - radio;
+
+        // Polea verde P en la columna derecha, debajo de la polea azul derecha
+        float xp_verde = xp_azul_der + radio;
+        float yp_verde = y_rectangulo + CR.pcApxL(5);
+
+        // Dimensiones de las masas - aún más anchas (mitad del anterior)
+        float ancho_masa = radio / 2f;  // Mitad del anterior (era radio)
+        float alto_masa = radio;
+
+        // Posiciones de las masas
+        // m1 cuelga del lado izquierdo de la polea azul izquierda
+        float x_m1 = xp_azul_izq - radio;
+        float y_m1 = yp_azul_izq + 5 * radio;
+
+        // m2 cuelga verticalmente de la polea verde P
+        float x_m2 = xp_verde-radio_verde;
+        float y_m2 = yp_verde + 2 * radio;
+
+        // m3 cuelga verticalmente de la polea verde P
+        float x_m3 = xp_verde+radio_verde;
+        float y_m3 = yp_verde + 4 * radio;
 
         /*
         Creación de objetos físicos y dibujo del
         estado inicial de la escena física
        */
-        //dos poleas
-        //polea 1 (polea azul)
-        polea_1 = new Polea(xp1, yp1, radio);
-        polea_1.setColor(Color.BLUE);
-        polea_1.setGrosorLinea(CR.pcApxL(0.5f));
-        polea_1.setSoportePolea(true);
-        polea_1.rotarEje(180);
-        objetos[0] = polea_1;
 
-        //polea 2 (polea roja)
-        polea_2 = new Polea(xp2, yp2, radio);
-        polea_2.setColor(Color.RED);
-        polea_2.setGrosorLinea(CR.pcApxL(0.5f));
-        objetos[1] = polea_2;
+        // Base oscura unida al rectángulo amarillo
+        float base_y = y_rectangulo + 0.5f * alto_rectangulo + CR.pcApxL(4);
+        base_oscura = new CuerpoRectangular(CR.pcApxX(50), base_y,
+                CR.pcApxL(60), CR.pcApxL(8));
+        base_oscura.setColor(Color.rgb(10, 50, 10));
+        objetos[0] = base_oscura;
 
+        // Cuerpo rectangular amarillo vertical
+        cuerpo_amarillo = new CuerpoRectangular(x_rectangulo, y_rectangulo,
+                ancho_rectangulo, alto_rectangulo);
+        cuerpo_amarillo.setColor(Color.YELLOW);
+        cuerpo_amarillo.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[1] = cuerpo_amarillo;
 
-        //barra superior que sostiene el sistem
-        barra = new CuerpoRectangular(CR.pcApxX(50), CR.pcApxY(2), CR.pcApxL(40), CR.pcApxL(2));
-        objetos[2] = barra;
+        // Polea azul izquierda - rotar 135° antihorario respecto a su centroide
+        polea_azul_izq = new Polea(xp_azul_izq, yp_azul_izq, radio);
+        polea_azul_izq.setColor(Color.BLUE);
+        polea_azul_izq.setGrosorLinea(CR.pcApxL(0.5f));
+        polea_azul_izq.setSoportePolea(true);
+        polea_azul_izq.rotarEje(-45);
+        polea_azul_izq.rotar(xp_azul_izq, yp_azul_izq, 0);
+        objetos[2] = polea_azul_izq;
 
+        // Polea azul derecha - rotar 45° antihorario respecto a su centroide
+        polea_azul_der = new Polea(xp_azul_der, yp_azul_der, radio);
+        polea_azul_der.setColor(Color.BLUE);
+        polea_azul_der.setGrosorLinea(CR.pcApxL(0.5f));
+        polea_azul_der.setSoportePolea(true);
+        polea_azul_der.rotarEje(45);
+        polea_azul_der.rotar(xp_azul_der, yp_azul_der, 45);
+        objetos[3] = polea_azul_der;
 
-        //4  cuerdas
-        cuerda_1 = new Cuerda(xp2 + radio, yp1, xp2 + radio, yp2);
-        cuerda_1.setColor(Color.BLACK);
-        cuerda_1.setGrosorLinea(CR.pcApxL(0.5f));
-        objetos[3] = cuerda_1;
+        // Polea verde P - mitad de tamaño
+        polea_verde_P = new Polea(xp_verde, yp_verde, radio_verde);
+        polea_verde_P.setColor(Color.rgb(0, 200, 0));
+        polea_verde_P.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[4] = polea_verde_P;
 
-        cuerda_2 = new Cuerda(xp2 - radio, CR.pcApxY(2.8f), xp2 - radio, yp2);
-        cuerda_2.setColor(Color.BLACK);
-        cuerda_2.setGrosorLinea(CR.pcApxL(0.5f));
-        objetos[4] = cuerda_2;
+        // Cuerda horizontal tangente superior entre poleas azules - prolongada un radio a cada lado
+        float cuerda_sup_y = yp_azul_izq - radio;
+        cuerda_horizontal = new Cuerda(xp_azul_izq, cuerda_sup_y,
+                xp_azul_der, cuerda_sup_y);
+        cuerda_horizontal.setColor(Color.RED);
+        cuerda_horizontal.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[5] = cuerda_horizontal;
 
-        cuerda_3 = new Cuerda(xp1 + radio, yp1, xp1 + radio, y1 - 0.5f * alto_bloque);
-        cuerda_3.setColor(Color.BLACK);
-        cuerda_3.setGrosorLinea(CR.pcApxL(0.5f));
-        objetos[5] = cuerda_3;
+        // Cuerda que sostiene m1 (desde polea azul izquierda hacia abajo)
+        cuerda_m1 = new Cuerda(xp_azul_izq - radio, yp_azul_izq,
+                x_m1, y_m1 - 0.5f * alto_masa);
+        cuerda_m1.setColor(Color.RED);
+        cuerda_m1.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[6] = cuerda_m1;
 
-        //cuerda_4=new Cuerda(xp2,yp2+0.5f*alto_barrita,xp2,y2-0.5f*alto_bloque);
-        cuerda_4 = new Cuerda(xp2, yp2 + radio, xp2, y2 - 0.5f * alto_bloque);
-        cuerda_4.setColor(Color.BLACK);
-        cuerda_4.setGrosorLinea(CR.pcApxL(0.5f));
-        objetos[6] = cuerda_4;
+        // Cuerda vertical desde polea azul derecha hasta polea verde P
+        cuerda_vertical_a_P = new Cuerda(xp_azul_der+radio, yp_azul_der ,
+                xp_verde, yp_verde - radio_verde);
+        cuerda_vertical_a_P.setColor(Color.RED);
+        cuerda_vertical_a_P.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[7] = cuerda_vertical_a_P;
 
-        //2 masas
-        //masa 2
-        masa_2 = new Masa(x2, y2, ancho_bloque, alto_bloque);
-        masa_2.setColor(Color.YELLOW);
-        masa_2.setColorMarca(Color.BLACK);
-        masa_2.setMarca("M2");
-        objetos[7] = masa_2;
+        // Cuerda verde tangente izquierda que sostiene m2
+        cuerda_m2 = new Cuerda(xp_verde - radio_verde, yp_verde,
+                x_m2, y_m2 - 0.5f * alto_masa);
+        cuerda_m2.setColor(Color.RED);
+        cuerda_m2.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[8] = cuerda_m2;
 
-        //masa 1
-        masa_1 = new Masa(x1, y1, ancho_bloque, alto_bloque);
-        masa_1.setColor(Color.YELLOW);
-        masa_1.setColorMarca(Color.BLACK);
-        masa_1.setMarca("M1");
-        objetos[8] = masa_1;
+        // Cuerda verde tangente derecha que sostiene m3
+        cuerda_m3 = new Cuerda(xp_verde + radio_verde, yp_verde,
+                x_m3, y_m3 - 0.5f * alto_masa);
+        cuerda_m3.setColor(Color.RED);
+        cuerda_m3.setGrosorLinea(CR.pcApxL(0.5f));
+        objetos[9] = cuerda_m3;
 
-        //dos reglas
-        //regla 1
-        regla_1 = new Regla(xp2 - 2.5f * radio, CR.pcApxY(15), CR.pcApxL(70), 1.5f * radio);
-        regla_1.setColor(Color.GREEN);
-        regla_1.setColorLetras(Color.BLACK);
-        regla_1.setNumeroDivisiones(20);
-        regla_1.rotar(90);
-        objetos[9] = regla_1;
+        // Masa m1 sin etiqueta interna
+        masa_1 = new Masa(x_m1, y_m1, ancho_masa, alto_masa);
+        masa_1.setColor(Color.rgb(0, 180, 0));
+        objetos[10] = masa_1;
 
-        //regla 2
-        regla_2 = new Regla(xp1 + 5f * radio, CR.pcApxY(15), CR.pcApxL(70), 1.5f * radio);
-        regla_2.setColor(Color.GREEN);
-        regla_2.setColorLetras(Color.BLACK);
-        regla_2.setNumeroDivisiones(20);
-        regla_2.rotar(90);
-        objetos[10] = regla_2;
+        // Masa m2 sin etiqueta interna
+        masa_2 = new Masa(x_m2, y_m2, ancho_masa, alto_masa);
+        masa_2.setColor(Color.rgb(0, 180, 0));
+        objetos[11] = masa_2;
 
+        // Masa m3 sin etiqueta interna
+        masa_3 = new Masa(x_m3, y_m3, ancho_masa, alto_masa);
+        masa_3.setColor(Color.rgb(0, 180, 0));
+        objetos[12] = masa_3;
 
-        //tres flechas
-        //eje y
-        flecha_1 = new Flecha(xp1 + 7f * radio, yp1, 8 * radio);
-        flecha_1.rotar(90);
-        objetos[11] = flecha_1;
+        // Marca P para la polea verde
+        marca_P = new Marca("P", xp_verde + 2.5f * radio_verde, yp_verde);
+        marca_P.setColor(Color.BLACK);
+        marca_P.setTamano(CR.pcApxL(4f));
+        objetos[13] = marca_P;
 
-        //flecha señaladora de regla derecha
-        flecha_2 = new Flecha(x1 + 0.5f * ancho_bloque, y1, 2f * radio);
-        flecha_2.setColor(Color.BLACK);
-        objetos[12] = flecha_2;
+        // Marca m1
+        marca_m1 = new Marca("m₁", x_m1 - 1.5f * radio, y_m1);
+        marca_m1.setColor(Color.BLACK);
+        marca_m1.setTamano(CR.pcApxL(3f));
+        objetos[14] = marca_m1;
 
-        //flecha señaladora de regla izquierda
-        flecha_3 = new Flecha(x2 - 0.5f * ancho_bloque, y2, 2f * radio);
-        flecha_3.setColor(Color.BLACK);
-        flecha_3.rotar(180);
-        objetos[13] = flecha_3;
+        // Marca m2
+        marca_m2 = new Marca("m₂", x_m2 - 1.25f * radio, y_m2);
+        marca_m2.setColor(Color.BLACK);
+        marca_m2.setTamano(CR.pcApxL(3f));
+        objetos[15] = marca_m2;
 
-        //una marca
-        //despliega el nombre del Eje y
-        marca = new Marca("Eje y", xp1 + 7.3f * radio, yp1 + 5.6f * radio);
-        marca.setColor(Color.BLACK);
-        marca.setTamano(CR.pcApxL(3f));
-        marca.rotar(90);
-        objetos[14] = marca;
+        // Marca m3
+        marca_m3 = new Marca("m₃", x_m3 + 0.5f * radio, y_m3);
+        marca_m3.setColor(Color.BLACK);
+        marca_m3.setTamano(CR.pcApxL(3f));
+        objetos[16] = marca_m3;
 
         //desplegar la escena inicial
         pizarra.setEstadoEscena(objetos);
 
     }
-
 
 }

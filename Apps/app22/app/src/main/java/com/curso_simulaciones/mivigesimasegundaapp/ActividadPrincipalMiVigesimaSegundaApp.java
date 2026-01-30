@@ -9,46 +9,25 @@ import com.curso_simulaciones.mivigesimasegundaapp.controlador.ActividadControla
 import com.curso_simulaciones.mivigesimasegundaapp.datos.AlmacenDatosRAM;
 
 public class ActividadPrincipalMiVigesimaSegundaApp extends Activity {
-
-
-
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
         gestionarResolucion();
-
-
         lanzarActividadControladora();
-
-
-
-    }//fin onCreate
-
-
-
+    } //fin onCreate
 
     /*Método auxiliar para asuntos de resolución*/
     private void gestionarResolucion() {
-
         //independencia de la resolución de la pantalla
         DisplayMetrics displayMetrics = this.getApplicationContext().getResources().getDisplayMetrics();
         int alto = displayMetrics.heightPixels;
         int ancho = displayMetrics.widthPixels;
-
-        //guardar en almacen annho y alto de pantalla
+        //guardar en almacen ancho y alto de pantalla
         AlmacenDatosRAM.ancho_pantalla = ancho;
         AlmacenDatosRAM.alto_pantalla = alto;
-
     }
-
-
 
     private void lanzarActividadControladora() {
-
         Intent intent = new Intent(this, ActividadControladora.class);
         startActivity(intent);
-
     }
-
 }
