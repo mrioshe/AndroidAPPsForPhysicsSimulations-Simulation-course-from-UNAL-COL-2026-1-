@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.curso_simulaciones.mivigesimaquintaapp">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="MiVigesimaQuintaApp"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        <!-- Actividad principal (Splash Screen) -->
+        <activity
+            android:name=".ActividadPrincipalMiVigesimaQuintaApp"
+            android:screenOrientation="landscape"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Actividad de simulación -->
+        <activity
+            android:name=".controlador.ActividadControladora"
+            android:screenOrientation="landscape"
+            android:exported="false" />
+    </application>
+
+</manifest>
