@@ -6,81 +6,69 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
+/**
+ * Utilitario para lectura/medición de campos magnéticos.
+ * Extiende GaugeSimple e implementa SensorEventListener para
+ * capturar y visualizar el campo geomagnético del dispositivo.
+ *
+ * Unidad: microteslas (µT). Rango terrestre típico: 25 – 65 µT.
+ *
+ * Componentes seleccionables:
+ *   1 = bx  (µT)
+ *   2 = by  (µT)
+ *   3 = bz  (µT)
+ *   4 = |b| (µT)  — valor por defecto
+ */
 public class Gaussimetro extends GaugeSimple implements SensorEventListener {
+
     private SensorManager sensorManager;
-    private int componenteCampo = 4;  // Por defecto muestra magnitud total
+    private int componenteGaussimetro = 4;
 
     public Gaussimetro(Context context) {
         super(context);
-        setComponenteGaussimetro(componenteCampo);
+        setComponenteGaussimetro(componenteGaussimetro);
     }
 
-    public void setComponenteGaussimetro(int componenteCampo) {
-        this.componenteCampo = componenteCampo;
-        if (componenteCampo == 1) {
-            this.setUnidades("Bx (µT)");
-            this.setRango(-1000, 1000);
-        }
-        if (componenteCampo == 2) {
-            this.setUnidades("By (µT)");
-            this.setRango(-1000, 1000);
-        }
-        if (componenteCampo == 3) {
-            this.setUnidades("Bz (µT)");
-            this.setRango(-1000, 1000);
-        }
-        if (componenteCampo == 4) {
-            this.setUnidades("B (µT)");
-            this.setRango(0, 1000);
+    /** Cambia la componente visible y ajusta rango + unidades. */
+    public void setComponenteGaussimetro(int componente) {
+        this.componenteGaussimetro = componente;
+        switch (componente) {
+            case 1: setUnidades("bx (µT)");  setRango(-100, 100); break;
+            case 2: setUnidades("by (µT)");  setRango(-100, 100); break;
+            case 3: setUnidades("bz (µT)");  setRango(-100, 100); break;
+            default: setUnidades("|b| (µT)"); setRango(0,   100); break;
         }
     }
 
+    public int getComponenteGaussimetro() { return componenteGaussimetro; }
+
+    /** Registra el listener para comenzar la captura del sensor. */
     public void captarSensor(Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        sensorManager.registerListener(
-                this,
+        sensorManager.registerListener(this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
                 SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float medida_x = event.values[SensorManager.DATA_X];
-        float medida_y = event.values[SensorManager.DATA_Y];
-        float medida_z = event.values[SensorManager.DATA_Z];
+        float bx = event.values[SensorManager.DATA_X];
+        float by = event.values[SensorManager.DATA_Y];
+        float bz = event.values[SensorManager.DATA_Z];
+        float mag = (float) Math.sqrt(bx * bx + by * by + bz * bz);
 
-        float resultado = medida_x * medida_x + medida_y * medida_y + medida_z * medida_z;
-        float magnitud = (float) Math.sqrt(resultado);
-
-        float medida = 0;
-
-        if (componenteCampo == 1) {
-            medida = medida_x;
-            this.setUnidades("Bx (µT)");
-            this.setRango(-1000, 1000);
-        }
-        if (componenteCampo == 2) {
-            medida = medida_y;
-            this.setUnidades("By (µT)");
-            this.setRango(-1000, 1000);
-        }
-        if (componenteCampo == 3) {
-            medida = medida_z;
-            this.setUnidades("Bz (µT)");
-            this.setRango(-1000, 1000);
-        }
-        if (componenteCampo == 4) {
-            medida = magnitud;
-            this.setUnidades("B (µT)");
-            this.setRango(0, 1000);
+        float medida;
+        switch (componenteGaussimetro) {
+            case 1: medida = bx;  setUnidades("bx (µT)");  setRango(-100, 100); break;
+            case 2: medida = by;  setUnidades("by (µT)");  setRango(-100, 100); break;
+            case 3: medida = bz;  setUnidades("bz (µT)");  setRango(-100, 100); break;
+            default: medida = mag; setUnidades("|b| (µT)"); setRango(0,   100); break;
         }
 
-        // Redondear a un decimal
-        medida = (float) (Math.round(medida * 10) / 10.0f);
-        this.setMedida(medida);
+        // Dos decimales
+        setMedida((float)(Math.round(medida * 100) / 100.0));
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) { }
 }

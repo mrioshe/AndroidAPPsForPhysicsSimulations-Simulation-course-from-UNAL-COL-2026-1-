@@ -1,5 +1,11 @@
 package com.curso_simulaciones.mitrigesimasextaapp.actividades_secundarias;
 
+import android.app.Activity;
+import android.os.Bundle;
+
+import com.curso_simulaciones.mitrigesimasextaapp.datos.AlmacenDatosRAM;
+import com.example.comunicaciones.ScannerBluetooth;
+
 public class ActividadEscaneoDispositivos extends Activity {
 
 
@@ -20,4 +26,3 @@ public class ActividadEscaneoDispositivos extends Activity {
 
 
 }
-

@@ -1,231 +1,134 @@
 package com.curso_simulaciones.mitrigesimasextaapp.comunicaciones;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.util.Log;
+
+import com.curso_simulaciones.mitrigesimasextaapp.datos.AlmacenDatosRAM;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.util.UUID;
+
+/**
+ * Clase que implementa la funcionalidad de cliente Bluetooth.
+ * Gestiona conexión, lectura y escritura de datos sobre RFCOMM/SPP.
+ *
+ * Protocolo cliente:
+ *  1. Abrir BluetoothSocket hacia la dirección MAC del servidor
+ *  2. Establecer conexión
+ *  3. Asociar flujos de E/S
+ *  4. Leer / escribir
+ *  6. Cerrar flujos y socket
+ */
 public class ClienteBluetooth {
 
-    //socket del cliente
+    private static final String TAG = "ClienteBluetooth";
+
+    // UUID estándar Serial Port Profile (SPP) — RFCOMM
+    public static final UUID UUID_SPP =
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
     public BluetoothAdapter adaptadorBluetooth;
-    public BluetoothDevice dispositivo;
-    public BluetoothSocket clienteSocket;
+    public BluetoothDevice  dispositivo;
+    public BluetoothSocket  clienteSocket;
 
-    private BufferedInputStream flujoEntrada;
+    private BufferedInputStream  flujoEntrada;
     private BufferedOutputStream flujoSalida;
-
-    //private JSONObject obj;
-    //private String dato;
     private String datoString;
 
+    public ClienteBluetooth() { }
 
-    /*
-     Como estamos creando una conexión SPP (como si fuese un puerto serie virtual)
-     a través del protocolo RFCOMM, debemos obtener el socket que conecta con el
-     servicio 00001101-0000-1000-8000-00805F9B34FB, que es el identificador único
-     de servicio para SPP en el estandar Bluetooth.
-     */
-
-    public static final UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
-    /**
-     * Constructor
-     * direccion es el MAC del dispositivo
-     */
-
-    public ClienteBluetooth() {
-
-    }
-
-
-    // 1. Abrir un socket (Socket) para conectarse y comunicarse con el Servidor
-
+    // ── Paso 1 ────────────────────────────────────────────────────────────────
+    /** Crea el BluetoothSocket apuntando a la dirección MAC del servidor. */
     public void abrirSocketCliente(String direccion) {
-
         adaptadorBluetooth = BluetoothAdapter.getDefaultAdapter();
         dispositivo = adaptadorBluetooth.getRemoteDevice(direccion);
-
-
-        // Obtenemos un socket cliente para el dispositivo con el que se quiere conectar
         try {
-
-            clienteSocket = dispositivo.createRfcommSocketToServiceRecord(uuid);
-
+            clienteSocket = dispositivo.createRfcommSocketToServiceRecord(UUID_SPP);
         } catch (IOException e) {
-
+            Log.e(TAG, "Error al crear socket cliente", e);
         }
-
-
     }
 
-    //2. Establecer conexión con el Servidor
-
+    // ── Paso 2 ────────────────────────────────────────────────────────────────
+    /** Establece la conexión con el servidor (llamada bloqueante). */
     public void conectarSocketCliente() {
-
         try {
-
             clienteSocket.connect();
-
-            AlmacenDatosRAM.conexion_bluetooth= "  Conectado con " + clienteSocket.getRemoteDevice().getName().toString();
-
-
+            AlmacenDatosRAM.conexion_bluetooth =
+                    " Conectado con " + clienteSocket.getRemoteDevice().getName();
         } catch (IOException e) {
-            AlmacenDatosRAM.conexion_bluetooth="  No se pudo conectar...";
+            AlmacenDatosRAM.conexion_bluetooth = " No se pudo conectar...";
             e.printStackTrace();
-
         }
-
-
     }
 
-
-    //3. Asociar uno o más flujos intermedios a el flujo de entrada (InputStream) asignado al socket
-
+    // ── Paso 3 ────────────────────────────────────────────────────────────────
     public void abrirFlujoEntrada() {
-
         if (clienteSocket != null) {
-
             try {
-
                 flujoEntrada = new BufferedInputStream(clienteSocket.getInputStream());
-
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            }
-
-
+            } catch (IOException e) { e.printStackTrace(); }
         }
-
     }
 
-
-    //3. Asociar uno o más flujos intermedios al flujo de salida (OutpuStream) asignado al socket
     public void abrirFlujoSalida() {
-
         if (clienteSocket != null) {
             try {
-
                 flujoSalida = new BufferedOutputStream(clienteSocket.getOutputStream());
-
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            }
-
+            } catch (IOException e) { e.printStackTrace(); }
         }
-
     }
 
-
-    // 4. Leer/Escribir a los flujos de acuerdo al protocolo establecido
-
+    // ── Paso 4 ────────────────────────────────────────────────────────────────
     /**
-     * Lee los datos que le fueron enviados  como flujo de bytes.
-     *
-     * @return
+     * Lee el flujo de bytes entrante y devuelve el contenido como String (JSON).
+     * Llamada bloqueante; debe ejecutarse en un hilo secundario.
      */
-
-    public String leerString(){
-
-        int dato;
-
-        byte[] buffer = new byte[8*1024];//1024*8];
-
+    public String leerString() {
+        byte[] buffer = new byte[8 * 1024];
         try {
-
-            if (flujoEntrada!=null){
-
-                dato = flujoEntrada.read(buffer);
-
-
-                datoString= new String(buffer, 0, dato);
-
+            if (flujoEntrada != null) {
+                int dato = flujoEntrada.read(buffer);
+                datoString = new String(buffer, 0, dato);
             }
         } catch (IOException e) {
-            Log.d(TAG, "falla");//bien aqui
+            Log.d(TAG, "Falla en lectura");
             e.printStackTrace();
         }
-
-
-        return  datoString;
-
+        return datoString;
     }
 
-
-    /**
-     * Envía los datos en flujo de bytes
-     */
-    public void escribirBytes(byte[] datoByteParaEnviar) {
-
-        byte[] buffer = new byte[1024];
-
-        if (datoByteParaEnviar != null)
-            buffer = datoByteParaEnviar;
-
-
-        if (flujoSalida != null) {
+    /** Envía un array de bytes al servidor. */
+    public void escribirBytes(byte[] datos) {
+        if (datos != null && flujoSalida != null) {
             try {
-
-                flujoSalida.write(buffer);
+                flujoSalida.write(datos);
                 flujoSalida.flush();
-
-            } catch (IOException e) {
-            }
-
+            } catch (IOException e) { e.printStackTrace(); }
         }
-
     }
 
-
-    //  6. Cerrar flujos y sockets
-
-    /**
-     * Cierra el socket cliente
-     */
-    public void cerrarSocketCliente() {
-
-        if (clienteSocket != null) {
-            try {
-
-                clienteSocket.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-
+    // ── Paso 6 ────────────────────────────────────────────────────────────────
     public void cerrarFlujoEntrada() {
-
         if (flujoEntrada != null) {
-
-            try {
-
-                flujoEntrada.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            try { flujoEntrada.close(); } catch (IOException e) { e.printStackTrace(); }
         }
-
     }
-
 
     public void cerrarFlujoSalida() {
-
         if (flujoSalida != null) {
-            try {
-
-                flujoSalida.flush();
-                flujoSalida.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            try { flujoSalida.flush(); flujoSalida.close(); }
+            catch (IOException e) { e.printStackTrace(); }
         }
-
     }
 
+    public void cerrarSocketCliente() {
+        if (clienteSocket != null) {
+            try { clienteSocket.close(); } catch (IOException e) { e.printStackTrace(); }
+        }
+    }
 }
-

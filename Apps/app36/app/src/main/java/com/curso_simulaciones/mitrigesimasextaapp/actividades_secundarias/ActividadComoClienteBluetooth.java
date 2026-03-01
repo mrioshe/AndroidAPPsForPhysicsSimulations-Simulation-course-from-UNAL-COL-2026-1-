@@ -1,408 +1,253 @@
 package com.curso_simulaciones.mitrigesimasextaapp.actividades_secundarias;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.curso_simulaciones.mitrigesimasextaapp.comunicaciones.ClienteBluetooth;
+import com.curso_simulaciones.mitrigesimasextaapp.datos.AlmacenDatosRAM;
+import com.curso_simulaciones.mitrigesimasextaapp.utilidades.Acelerometro;
+import com.curso_simulaciones.mitrigesimasextaapp.utilidades.Gaussimetro;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * Pantalla/actividad que actúa como cliente Bluetooth.
+ *
+ * Recibe el JSON del SERVIDOR con los valores de aceleración y campo magnético,
+ * y los visualiza en dos tacómetros (Acelerometro + Gaussimetro).
+ *
+ * JSON recibido:
+ * { "comp_acel": int, "medida_acel": double,
+ *   "comp_mag":  int, "medida_mag":  double }
+ */
 public class ActividadComoClienteBluetooth extends Activity implements Runnable {
 
-
+    // ── Instrumentos ─────────────────────────────────────────────────────────
     private Acelerometro acelerometro;
-    private Luxometro luxometro;
+    private Gaussimetro  gaussimetro;
 
-    private Button botonConectar, botonBuscar;
-    private TextView textviewRol;
-    private TextView textviewAviso;
+    // ── Controles UI ──────────────────────────────────────────────────────────
+    private TextView textviewRol, textviewAviso;
+    private Button   botonBuscar, botonConectar;
 
-    private int tamanoLetraResolucionIncluida;
-    private int COLOR_1 = Color.rgb(220, 156, 80);
+    // ── Config ────────────────────────────────────────────────────────────────
+    private int tamanoLetra;
+    private final int COLOR_CLIENTE = Color.rgb(220, 156, 80);
 
-    //hilo para actualizar tabla
-    //esto evita que se reviente la app
+    // ── Hilo ──────────────────────────────────────────────────────────────────
     private final Handler myHandler = new Handler();
+    private Thread  hilo;
+    private boolean corriendo;
+    private final long PERIODO_MS = 50;
 
+    // ── Bluetooth ─────────────────────────────────────────────────────────────
     private ClienteBluetooth cliente;
-
     private JSONObject obj;
 
-    private long periodo_muestreo = 50;//pausas de 50 ms
-
-    private boolean corriendo;
-
-
-    /*
-   hilo resposable de estar pendiente
-   del intercambio de datos con el servidor
-   */
-    private Thread hilo;
-
-
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
+    @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-
-        gestionarResolucion();
-
+        tamanoLetra = (int)(0.8 * AlmacenDatosRAM.tamanoLetraResolucionIncluida);
         creacionElementosGUI();
-
         setContentView(crearGUI());
-
         eventos();
-
-
     }
 
-    private void gestionarResolucion() {
-
-        //tamano de letra para usar acomodado a la resolución de pantalla
-        tamanoLetraResolucionIncluida = (int)(0.8* AlmacenDatosRAM.tamanoLetraResolucionIncluida);
-
-    }//fin método gestionanrResolucion()solucion()
-
-
+    // ── GUI ───────────────────────────────────────────────────────────────────
     private void creacionElementosGUI() {
 
+        // Los tacómetros NO capturan sensor local; reciben datos vía BT
         acelerometro = new Acelerometro(this);
-        acelerometro.setUnidades(" a m/s^2");
         acelerometro.setAngulosSectores(50, 100, 100);
-        acelerometro.setColorFranjaDinámica(Color.rgb(0,255,0));
+        acelerometro.setColorFranjaDinámica(Color.rgb(0, 255, 0));
 
-        luxometro = new Luxometro(this);
-        luxometro.setUnidades("lx");
+        gaussimetro = new Gaussimetro(this);
+        gaussimetro.setAngulosSectores(80, 90, 80);
+        gaussimetro.setColorFranjaDinámica(Color.rgb(0, 180, 255));
 
-        textviewRol = new TextView(this);
-        textviewRol.setTextSize(TypedValue.COMPLEX_UNIT_SP, (int)(0.8*tamanoLetraResolucionIncluida));
-        textviewRol.setBackgroundColor(Color.YELLOW);
-        textviewRol.setText("CLIENTE");
-        textviewRol.setTextColor(Color.RED);
-        textviewRol.setGravity(Gravity.CENTER);
-        textviewRol.setEnabled(false);
+        textviewRol = labelRol("CLIENTE");
 
         textviewAviso = new TextView(this);
-        textviewAviso.setTextSize(TypedValue.COMPLEX_UNIT_SP, (int)(0.8*tamanoLetraResolucionIncluida));
+        textviewAviso.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanoLetra);
         textviewAviso.setBackgroundColor(Color.YELLOW);
         textviewAviso.setTextColor(Color.RED);
         textviewAviso.setGravity(Gravity.CENTER);
         textviewAviso.setText(AlmacenDatosRAM.conexion_bluetooth);
 
+        botonBuscar = btn("BUSCAR",  true);
+        botonConectar = btn("CONECTAR", false);
+    }
 
-        botonBuscar = new Button(this);
-        botonBuscar.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanoLetraResolucionIncluida);
-        botonBuscar.setText("BUSCAR");
-        botonBuscar.getBackground().setColorFilter(COLOR_1, PorterDuff.Mode.MULTIPLY);
-        botonBuscar.setEnabled(true);
-        botonBuscar.setTextSize(tamanoLetraResolucionIncluida);
+    private TextView labelRol(String texto) {
+        TextView tv = new TextView(this);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanoLetra);
+        tv.setBackgroundColor(Color.YELLOW);
+        tv.setText(texto);
+        tv.setTextColor(Color.RED);
+        tv.setGravity(Gravity.CENTER);
+        tv.setEnabled(false);
+        return tv;
+    }
 
-
-        botonConectar = new Button(this);
-        botonConectar.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanoLetraResolucionIncluida);
-        botonConectar.setText("CONECTAR");
-        botonConectar.getBackground().setColorFilter(COLOR_1, PorterDuff.Mode.MULTIPLY);
-        botonConectar.setEnabled(false);
-        botonConectar.setTextSize(tamanoLetraResolucionIncluida);
-
+    private Button btn(String texto, boolean enabled) {
+        Button b = new Button(this);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanoLetra);
+        b.setText(texto);
+        b.getBackground().setColorFilter(COLOR_CLIENTE, PorterDuff.Mode.MULTIPLY);
+        b.setEnabled(enabled);
+        return b;
     }
 
     private LinearLayout crearGUI() {
-
-        //LinearLayoutPrincipal
-        LinearLayout linearLayoutPrincipal = new LinearLayout(this);
-        linearLayoutPrincipal.setOrientation(LinearLayout.VERTICAL);
-        linearLayoutPrincipal.setBackgroundColor(Color.WHITE);
-        linearLayoutPrincipal.setWeightSum(10f);
-
-        //LinearLayout fila 1
-        LinearLayout linearLayoutFilaUno = new LinearLayout(this);
-        linearLayoutFilaUno.setBackgroundColor(Color.WHITE);
-
-        //LinearLayout fila 2
-        LinearLayout linearLayoutFilaDos = new LinearLayout(this);
-        linearLayoutFilaDos.setBackgroundColor(Color.WHITE);
-
-        //LinearLayout fila 3
-        LinearLayout linearLayoutFilaTres = new LinearLayout(this);
-        linearLayoutFilaTres.setBackgroundColor(Color.WHITE);
-
-        //LinearLayout fila 4
-        LinearLayout linearLayoutFilaCuatro = new LinearLayout(this);
-        linearLayoutFilaCuatro.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayoutFilaCuatro.setBackgroundColor(Color.WHITE);
-
-
-        //LinearLayout fila 5
-        LinearLayout linearLayoutFilaCinco = new LinearLayout(this);
-        linearLayoutFilaCinco.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayoutFilaCinco.setBackgroundColor(Color.WHITE);
-        linearLayoutFilaCinco.setWeightSum(2f);
-
-        //pegar las filas en el princpal
-        LinearLayout.LayoutParams parametrosFilaUno = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-        parametrosFilaUno.weight = 1.0f;
-        linearLayoutFilaUno.setLayoutParams(parametrosFilaUno);
-
-        LinearLayout.LayoutParams parametrosFilaDos = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-        parametrosFilaDos.weight = 3.75f;
-        linearLayoutFilaDos.setLayoutParams(parametrosFilaDos);
-
-        LinearLayout.LayoutParams parametrosFilaTres = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-        parametrosFilaTres.weight = 3.75f;
-        linearLayoutFilaTres.setLayoutParams(parametrosFilaTres);
-
-        LinearLayout.LayoutParams parametrosFilaCuatro = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-        parametrosFilaCuatro.weight = 0.5f;
-        linearLayoutFilaCuatro.setLayoutParams(parametrosFilaCuatro);
-
-        LinearLayout.LayoutParams parametrosFilaCinco = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-        parametrosFilaCinco.weight = 1.0f;
-        linearLayoutFilaCinco.setLayoutParams(parametrosFilaCinco);
-
-        linearLayoutPrincipal.addView(linearLayoutFilaUno);
-        linearLayoutPrincipal.addView(linearLayoutFilaDos);
-        linearLayoutPrincipal.addView(linearLayoutFilaTres);
-        linearLayoutPrincipal.addView(linearLayoutFilaCuatro);
-        linearLayoutPrincipal.addView(linearLayoutFilaCinco);
-
-        //Adicionar a la fila 1 EditText rol
-        LinearLayout.LayoutParams parametrosPegadoEditTextRol = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        linearLayoutFilaUno.setGravity(Gravity.CENTER);
-        textviewRol.setPadding(20, 20, 20, 20);
-        parametrosPegadoEditTextRol.setMargins(20, 20, 20, 20);
-        textviewRol.setLayoutParams(parametrosPegadoEditTextRol);
-        linearLayoutFilaUno.addView(textviewRol);
-
-        //Adicionar a la fila 2 el acelerometro
-        LinearLayout.LayoutParams parametrosPegadoAcelerometro = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        linearLayoutFilaDos.setGravity(Gravity.CENTER);
-        linearLayoutFilaDos.addView(acelerometro, parametrosPegadoAcelerometro);
-
-        //Adicionar a la fila 3 el luxometro
-        LinearLayout.LayoutParams parametrosPegadoLuxometro = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        linearLayoutFilaTres.setGravity(Gravity.CENTER);
-        linearLayoutFilaTres.addView(luxometro, parametrosPegadoLuxometro);
-
-        //Adicionar a la fila 4 el aviso
-        LinearLayout.LayoutParams parametrosPegadoAviso = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        linearLayoutFilaCuatro.addView(textviewAviso, parametrosPegadoAviso);
-
-
-        //Adicionar a la fila 5 los botones
-        LinearLayout.LayoutParams parametrosPegadoBotones = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
-        parametrosPegadoBotones.weight = 1.0f;
-        linearLayoutFilaCinco.addView(botonBuscar, parametrosPegadoBotones);
-        linearLayoutFilaCinco.addView(botonConectar, parametrosPegadoBotones);
-
-
-        return linearLayoutPrincipal;
-    }
-
-    private void eventos() {
-
-        //evento cliente
-        botonBuscar.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-
-                lanzarBuscandoDispositivos();
-                botonConectar.setEnabled(true);
-                botonBuscar.setEnabled(false);
-
-            }
-        });
-
-
-        //evento cliente
-        botonConectar.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-
-                if (botonConectar.getText() == "CONECTAR") {
-                    botonConectar.setText("EMPEZAR");
-                    botonBuscar.setEnabled(false);
-                    crearCliente();
-                    cliente.conectarSocketCliente();
-
-                } else {
-
-
-
-                    botonConectar.setEnabled(false);
-                    //hilo de comunicación con servidor
-                    empezarHilo();
-
-                }
-
-            }
-        });
-
-
-    }//fin eventos()
-
-    private void lanzarBuscandoDispositivos() {
-
-        Intent intent = new Intent(this, ActividadEscaneoDispositivos.class);
-        startActivity(intent);
-
-    }
-
-
-    public void empezarHilo() {
-
-        hilo = new Thread(this);
-        hilo.start();
-
-    }
-
-
-    private void crearCliente() {
-
-        //dirección del dispositivo elegido para emparejar
-        String direccion = AlmacenDatosRAM.direccion;
-        cliente = new ClienteBluetooth();
-
         /*
-         el cliente instancia un dispositivo Bluetooth
-         (BluetoohDevice) a partir de la dirección
-         de este.Luego abre un socket de tipo  BuletoothSocket
-         a partir del dispositivo enlazado.
+         * Layout vertical (weightSum=10):
+         *  Fila 1 (0.8) — etiqueta ROL
+         *  Fila 2 (4.0) — Tacómetro Acelerómetro
+         *  Fila 3 (4.0) — Tacómetro Gaussímetro
+         *  Fila 4 (0.4) — aviso estado BT
+         *  Fila 5 (0.8) — botones BUSCAR / CONECTAR
          */
-        cliente.abrirSocketCliente(direccion);
-        empezarComunicacionConServidor();
+        LinearLayout principal = new LinearLayout(this);
+        principal.setOrientation(LinearLayout.VERTICAL);
+        principal.setBackgroundColor(Color.WHITE);
+        principal.setWeightSum(10f);
 
+        row(principal, hl(Color.WHITE, Gravity.CENTER),
+                0.8f, textviewRol,       ViewGroup.LayoutParams.MATCH_PARENT);
+        row(principal, hl(Color.WHITE, Gravity.CENTER),
+                4.0f, acelerometro,      ViewGroup.LayoutParams.MATCH_PARENT);
+        row(principal, hl(Color.WHITE, Gravity.CENTER),
+                4.0f, gaussimetro,       ViewGroup.LayoutParams.MATCH_PARENT);
+        row(principal, hl(Color.WHITE, 0),
+                0.4f, textviewAviso,     ViewGroup.LayoutParams.MATCH_PARENT);
+
+        // Fila botones (dos columnas)
+        LinearLayout f5 = hl(Color.WHITE, 0);
+        f5.setWeightSum(2f);
+        LinearLayout.LayoutParams p5 = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0);
+        p5.weight = 0.8f;
+        f5.setLayoutParams(p5);
+        principal.addView(f5);
+
+        LinearLayout.LayoutParams pBtn = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.MATCH_PARENT);
+        pBtn.weight = 1f;
+        f5.addView(botonBuscar,   pBtn);
+        f5.addView(botonConectar, pBtn);
+
+        return principal;
     }
 
-    private void empezarComunicacionConServidor() {
+    // ── Eventos ───────────────────────────────────────────────────────────────
+    private void eventos() {
+        botonBuscar.setOnClickListener(v -> {
+            startActivity(new Intent(this, ActividadEscaneoDispositivos.class));
+            botonConectar.setEnabled(true);
+            botonBuscar.setEnabled(false);
+        });
 
-       /*
-       Aceptada la conexión abre los flujos de entrada
-       y salida de este socket por donde fluirán (tubería)
-         los datos desde y hacia el servidor
-       */
+        botonConectar.setOnClickListener(v -> {
+            if (botonConectar.getText().toString().equals("CONECTAR")) {
+                botonConectar.setText("EMPEZAR");
+                botonBuscar.setEnabled(false);
+                inicializarCliente();
+            } else {
+                botonConectar.setEnabled(false);
+                empezarHilo();
+            }
+        });
+    }
 
+    // ── Bluetooth ─────────────────────────────────────────────────────────────
+    private void inicializarCliente() {
+        cliente = new ClienteBluetooth();
+        cliente.abrirSocketCliente(AlmacenDatosRAM.direccion);
+        cliente.conectarSocketCliente();
         cliente.abrirFlujoEntrada();
         cliente.abrirFlujoSalida();
-
     }
 
-    private void terminarComunicacionConServidor() {
-
+    private void terminarComunicacion() {
         cliente.cerrarFlujoEntrada();
         cliente.cerrarFlujoSalida();
         cliente.cerrarSocketCliente();
-
     }
 
+    // ── Hilo ──────────────────────────────────────────────────────────────────
+    private void empezarHilo() {
+        hilo = new Thread(this);
+        hilo.start();
+    }
 
     @Override
     public void run() {
         corriendo = true;
-
-
         while (corriendo) {
-
-            try {
-                Thread.sleep(periodo_muestreo);
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            leer();
-            AlmacenDatosRAM.conexion_bluetooth= "  Recibiendo datos del servidor ...";
-            hacerTrabajoDuro();
-
+            try { Thread.sleep(PERIODO_MS); } catch (InterruptedException e) { e.printStackTrace(); }
+            leerYActualizar();
         }
-
-        AlmacenDatosRAM.conexion_bluetooth= " ";
-
+        AlmacenDatosRAM.conexion_bluetooth = " ";
     }
 
+    private void leerYActualizar() {
+        String datoString = cliente.leerString();
+        if (datoString == null) return;
 
-
-    private void leer(){
-
-        String nuevo_dato_string = cliente.leerString();//String JSON
-
-        if (nuevo_dato_string!= null) {
-            convertirStrigJson(nuevo_dato_string);
-
-        }
-
-    }
-
-    //obtener la información del JSON
-    public void convertirStrigJson(String datoString) {
-
-        //convertir String a JSON
         try {
             obj = new JSONObject(datoString);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
-        //obtener la información
-        //la medida
-        try {
-            int componente_aceleracion = obj.getInt("componente");
-            acelerometro.setComponenteAcelerometro(componente_aceleracion);
-            //acelerometro.setUnidades(componente_aceleracion+" (m/s^2)");
+            int    compAcel   = obj.getInt("comp_acel");
+            float  medidaAcel = (float) obj.getDouble("medida_acel");
+            int    compMag    = obj.getInt("comp_mag");
+            float  medidaMag  = (float) obj.getDouble("medida_mag");
 
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            AlmacenDatosRAM.conexion_bluetooth = " Recibiendo datos del servidor ...";
 
-        try {
+            myHandler.post(() -> {
+                acelerometro.setComponenteAcelerometro(compAcel);
+                acelerometro.setMedida(medidaAcel);
+                gaussimetro.setComponenteGaussimetro(compMag);
+                gaussimetro.setMedida(medidaMag);
+                textviewAviso.setText(AlmacenDatosRAM.conexion_bluetooth);
+            });
 
-            float medida_aclerometro = (float)(obj.getDouble("valor_acelerometro"));
-            acelerometro.setMedida(medida_aclerometro);
-            float medida_luxometro = (float)(obj.getDouble("valor_luxometro"));
-            luxometro.cambiarEscala(medida_luxometro);
-            luxometro.setMedida(medida_luxometro);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
+        } catch (JSONException e) { e.printStackTrace(); }
     }
 
-    protected void onPause() {
-        super.onPause();
-        //detener hilo
-        corriendo = false;
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
+    @Override protected void onPause()   { super.onPause();   corriendo = false; }
+    @Override protected void onDestroy() { super.onDestroy(); terminarComunicacion(); }
 
+    // ── Helpers layout ────────────────────────────────────────────────────────
+    private LinearLayout hl(int color, int gravity) {
+        LinearLayout l = new LinearLayout(this);
+        l.setBackgroundColor(color);
+        if (gravity != 0) l.setGravity(gravity);
+        return l;
     }
 
-
-
-    protected void onDestroy() {
-        super.onDestroy();
-        terminarComunicacionConServidor();
-
+    private void row(LinearLayout padre, LinearLayout fila, float peso,
+                     View hijo, int anchoHijo) {
+        LinearLayout.LayoutParams pFila = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0);
+        pFila.weight = peso;
+        fila.setLayoutParams(pFila);
+        padre.addView(fila);
+        fila.addView(hijo, new LinearLayout.LayoutParams(
+                anchoHijo, ViewGroup.LayoutParams.MATCH_PARENT));
     }
-
-
-    /*
-    Para el asunto de la table es mejor usar un
-    hilo manejador para que no se reviente la aplicación
-  */
-    public void hacerTrabajoDuro() {
-        //.... realizar el trabajo duro
-
-        //Actualiza la UI usando el handler y el runnable
-        myHandler.post(updateRunnable);
-
-    }
-
-    final Runnable updateRunnable = new Runnable() {
-        public void run() {
-
-            avisoEstadoComunicacion();
-
-
-        }
-    };
-
-    private void  avisoEstadoComunicacion(){
-
-        textviewAviso.setText(AlmacenDatosRAM.conexion_bluetooth);
-
-    }
-
-
-
 }
-
