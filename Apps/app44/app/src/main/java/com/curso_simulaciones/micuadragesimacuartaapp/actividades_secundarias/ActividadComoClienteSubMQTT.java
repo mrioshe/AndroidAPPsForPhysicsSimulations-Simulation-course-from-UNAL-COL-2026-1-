@@ -23,6 +23,7 @@ import com.curso_simulaciones.micuadragesimacuartaapp.gui_auxiliares.DialogoSali
 import com.curso_simulaciones.micuadragesimacuartaapp.utilidades.Graficador;
 import com.curso_simulaciones.micuadragesimacuartaapp.utilidades.Luxometro;
 import com.curso_simulaciones.micuadragesimacuartaapp.utilidades.TablaSimple;
+import com.github.mikephil.charting.data.Entry;
 
 import org.json.JSONException;
 import org.json.JSONObject;
