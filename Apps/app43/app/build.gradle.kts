@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation (files("libs/org.eclipse.paho.client.mqttv3-1.2.0.jar"))
     implementation(libs.appcompat)
     implementation(libs.material)

@@ -13,8 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.curso_simulaciones.micuadragesimaterceraapp.Actividades_secundarias.ActividadComoClientePubMQTT;
-import com.curso_simulaciones.micuadragesimaterceraapp.Actividades_secundarias.ActividadConfiguracion;
+import com.curso_simulaciones.micuadragesimaterceraapp.actividades_secundarias.ActividadComoClientePubMQTT;
+import com.curso_simulaciones.micuadragesimaterceraapp.actividades_secundarias.ActividadConfiguracion;
 import com.curso_simulaciones.micuadragesimaterceraapp.datos.AlmacenDatosRAM;
 import com.curso_simulaciones.micuadragesimaterceraapp.utilidades.Boton;
 
@@ -45,8 +45,6 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
 
         //actualizar preferencias
         actualizarPreferenciasMQTT();
-
-
         eventos();
 
 
@@ -88,7 +86,9 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
     }
 
 
-    private void crearElementosGUI() { entrar = new Boton(this);
+    private void crearElementosGUI() {
+
+        entrar = new Boton(this);
         entrar.setImagen(R.drawable.entrar);
 
         salir = new Boton(this);
@@ -117,7 +117,8 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
         linear_layout_primera_fila.setOrientation(LinearLayout.HORIZONTAL);
         linear_layout_primera_fila.setGravity(Gravity.FILL);
         linear_layout_primera_fila.setBackgroundColor(Color.BLACK);
-        LinearLayout.LayoutParams parametros_primera_fila = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);//ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams parametros_primera_fila = new
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);//ViewGroup.LayoutParams.WRAP_CONTENT);
         parametros_primera_fila.weight = 9.0f;
         linear_layout_primera_fila.setLayoutParams(parametros_primera_fila);
 
@@ -159,6 +160,7 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
     private void eventos() {
 
         entrar.setOnClickListener(new View.OnClickListener() {
+
             public void onClick(View v) {
 
                 lanzarActividadComunicacion();
@@ -187,10 +189,6 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
 
 
     }
-
-
-
-
 
     private void lanzarActividadComunicacion() {
 

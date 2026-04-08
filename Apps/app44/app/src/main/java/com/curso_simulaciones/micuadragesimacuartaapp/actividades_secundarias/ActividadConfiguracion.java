@@ -1,4 +1,4 @@
-package com.curso_simulaciones.micuadragesimaterceraapp.Actividades_secundarias;
+package com.curso_simulaciones.micuadragesimacuartaapp.actividades_secundarias;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.method.DigitsKeyListener;
 import android.text.method.PasswordTransformationMethod;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -20,13 +21,13 @@ import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 
-import com.curso_simulaciones.micuadragesimaterceraapp.datos.AlmacenDatosRAM;
+import com.curso_simulaciones.micuadragesimacuartaapp.datos.AlmacenDatosRAM;
 
 public class ActividadConfiguracion extends Activity {
 
-    private EditText edit_text_broker, edit_text_usuario, edit_text_topico,
+    private EditText edit_text_numero_datos, edit_text_numero_datos_graficar , edit_text_broker, edit_text_usuario, edit_text_topico,
             edit_text_contrasena;;
-    private TextView text_broker, text_usuario, text_contrasena, text_topico;
+    private TextView text_numero_datos, text_numero_datos_graficar, text_broker, text_usuario, text_contrasena, text_topico;
     private int tamano_letra;
     private Button boton_grabar;
 
@@ -78,6 +79,30 @@ public class ActividadConfiguracion extends Activity {
 
     /*método responsable de la creación de los elementos de la GUI*/
     private void crearElementosGUI(){
+
+        text_numero_datos = new TextView(this);
+        text_numero_datos.setGravity(Gravity.FILL_VERTICAL);
+        text_numero_datos.setTextSize(tamano_letra);
+        text_numero_datos.setText("  NÚMERO DE DATOS (máximo 1000)");
+        text_numero_datos.setTextColor(Color.BLACK);
+
+        edit_text_numero_datos = new EditText(this);
+        //Despliega teclado solo con números enteros positivos.
+        edit_text_numero_datos.setKeyListener(DigitsKeyListener.getInstance(false, false));
+        edit_text_numero_datos.setTextSize(tamano_letra);
+        edit_text_numero_datos.setText("" + AlmacenDatosRAM.nDatos);
+
+        text_numero_datos_graficar = new TextView(this);
+        text_numero_datos_graficar.setGravity(Gravity.FILL_VERTICAL);
+        text_numero_datos_graficar.setTextSize(tamano_letra);
+        text_numero_datos_graficar.setText("  NÚMERO DE DATOS A GRAFICAR");
+        text_numero_datos_graficar.setTextColor(Color.BLACK);
+
+        edit_text_numero_datos_graficar = new EditText(this);
+        //Despliega teclado solo con números enteros positivos.
+        edit_text_numero_datos_graficar.setKeyListener(DigitsKeyListener.getInstance(false, false));
+        edit_text_numero_datos_graficar.setTextSize(tamano_letra);
+        edit_text_numero_datos_graficar.setText("" + AlmacenDatosRAM.nDatosGraficar);
 
         text_broker = new TextView(this);
         text_broker.setGravity(Gravity.FILL_VERTICAL);
@@ -141,6 +166,7 @@ public class ActividadConfiguracion extends Activity {
         LinearLayout linear_principal = new LinearLayout(this);
         linear_principal.setOrientation(LinearLayout.VERTICAL);
         linear_principal.setBackgroundColor(Color.WHITE);
+        linear_principal.setWeightSum(10f);
 
         //LinearLayout primera fila
         LinearLayout linearLayoutPrimeraFila = new LinearLayout(this);
@@ -151,7 +177,6 @@ public class ActividadConfiguracion extends Activity {
         //LinearLayout segunda fila
         LinearLayout linearLayoutSegundaFila = new LinearLayout(this);
         linearLayoutSegundaFila.setBackgroundColor(Color.YELLOW);
-
         linearLayoutSegundaFila.setWeightSum(2f);
         linearLayoutSegundaFila.setOrientation(LinearLayout.HORIZONTAL);
 
@@ -176,27 +201,34 @@ public class ActividadConfiguracion extends Activity {
         //LinearLayout sexta fila
         LinearLayout linearLayoutSextaFila = new LinearLayout(this);
         linearLayoutSextaFila.setBackgroundColor(Color.YELLOW);
-        linearLayoutSextaFila.setWeightSum(1f);
+        linearLayoutSextaFila.setWeightSum(2f);
         linearLayoutSextaFila.setOrientation(LinearLayout.HORIZONTAL);
 
-        //LinearLayout septima fila y pegar panel deslizable
+        //LinearLayout septima fila
         LinearLayout linearLayoutSeptimaFila = new LinearLayout(this);
-        linearLayoutSeptimaFila.setBackgroundColor(Color.BLACK);
-        linearLayoutSeptimaFila.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutSeptimaFila.setBackgroundColor(Color.YELLOW);
+        linearLayoutSeptimaFila.setWeightSum(1f);
+        linearLayoutSeptimaFila.setOrientation(LinearLayout.HORIZONTAL);
+
+        //LinearLayout octava fila
+        LinearLayout linearLayoutOctavaFila = new LinearLayout(this);
+        linearLayoutOctavaFila.setBackgroundColor(Color.BLACK);
+        linearLayoutOctavaFila.setOrientation(LinearLayout.VERTICAL);
 
         //pegar las filas en el principal
-        LinearLayout.LayoutParams parametrosPrimerasCincoFilas = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0);
-        parametrosPrimerasCincoFilas.weight = 0.5f;
-        linearLayoutPrimeraFila.setLayoutParams(parametrosPrimerasCincoFilas);
-        linearLayoutSegundaFila.setLayoutParams(parametrosPrimerasCincoFilas);
-        linearLayoutTerceraFila.setLayoutParams(parametrosPrimerasCincoFilas);
-        linearLayoutCuartaFila.setLayoutParams(parametrosPrimerasCincoFilas);
-        linearLayoutQuintaFila.setLayoutParams(parametrosPrimerasCincoFilas);
-        linearLayoutSextaFila.setLayoutParams(parametrosPrimerasCincoFilas);
+        LinearLayout.LayoutParams parametrosPrimerasSieteFilas = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0);
+        parametrosPrimerasSieteFilas.weight = 0.5f;
+        linearLayoutPrimeraFila.setLayoutParams(parametrosPrimerasSieteFilas);
+        linearLayoutSegundaFila.setLayoutParams(parametrosPrimerasSieteFilas);
+        linearLayoutTerceraFila.setLayoutParams(parametrosPrimerasSieteFilas);
+        linearLayoutCuartaFila.setLayoutParams(parametrosPrimerasSieteFilas);
+        linearLayoutQuintaFila.setLayoutParams(parametrosPrimerasSieteFilas);
+        linearLayoutSextaFila.setLayoutParams(parametrosPrimerasSieteFilas);
+        linearLayoutSeptimaFila.setLayoutParams(parametrosPrimerasSieteFilas);
 
-        LinearLayout.LayoutParams parametrosSeptimaFila = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0);
-        parametrosSeptimaFila.weight = 7.5f;
-        linearLayoutSeptimaFila.setLayoutParams(parametrosSeptimaFila);
+        LinearLayout.LayoutParams parametrosOctavaFila = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0);
+        parametrosOctavaFila.weight = 6.5f;
+        linearLayoutOctavaFila.setLayoutParams(parametrosOctavaFila);
 
         linear_principal.addView(linearLayoutPrimeraFila);
         linear_principal.addView(linearLayoutSegundaFila);
@@ -205,8 +237,9 @@ public class ActividadConfiguracion extends Activity {
         linear_principal.addView(linearLayoutQuintaFila);
         linear_principal.addView(linearLayoutSextaFila);
         linear_principal.addView(linearLayoutSeptimaFila);
+        linear_principal.addView(linearLayoutOctavaFila);
 
-        //pegar elementos en cinco primeras filas
+        //pegar elementos en seis filas
         LinearLayout.LayoutParams parametros_pegado_elementos_cinco_primeras_filas_I = new LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
         parametros_pegado_elementos_cinco_primeras_filas_I .weight = 1.0f;
         LinearLayout.LayoutParams parametros_pegado_elementos_cinco_primeras_filas_D = new LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
@@ -216,29 +249,37 @@ public class ActividadConfiguracion extends Activity {
         edit_text_broker.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_D);
         linearLayoutPrimeraFila.addView(text_broker);
         linearLayoutPrimeraFila.addView(edit_text_broker);
-
         //segunda fila
         text_usuario.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_I);
         edit_text_usuario.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_D);
         linearLayoutSegundaFila.addView(text_usuario);
         linearLayoutSegundaFila.addView(edit_text_usuario);
-
         //tercera fila
         text_contrasena.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_I);
         edit_text_contrasena.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_D);
         linearLayoutTerceraFila.addView(text_contrasena);
         linearLayoutTerceraFila.addView(edit_text_contrasena);
-
         //cuarta fila
         text_topico.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_I);
         edit_text_topico.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_D);
         linearLayoutCuartaFila.addView(text_topico);
         linearLayoutCuartaFila.addView(edit_text_topico);
+        //quinta fila
+        text_numero_datos.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_I);
+        edit_text_numero_datos.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_D);
+        linearLayoutQuintaFila.addView(text_numero_datos);
+        linearLayoutQuintaFila.addView(edit_text_numero_datos);
+        //sexta fila
+        text_numero_datos_graficar.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_I);
+        edit_text_numero_datos_graficar.setLayoutParams(parametros_pegado_elementos_cinco_primeras_filas_D);
+        linearLayoutSextaFila.addView(text_numero_datos_graficar);
+        linearLayoutSextaFila.addView(edit_text_numero_datos_graficar);
 
-        //pegar elemento quinta fila
-        LinearLayout.LayoutParams parametros_pegado_elemento_quinta_fila = new LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
-        parametros_pegado_elemento_quinta_fila .weight = 1.0f;
-        linearLayoutSextaFila.addView(boton_grabar,parametros_pegado_elemento_quinta_fila);
+
+        //pegar elemento septima fila
+        LinearLayout.LayoutParams parametros_pegado_elemento_septima_fila = new LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+        parametros_pegado_elemento_septima_fila .weight = 1.0f;
+        linearLayoutSeptimaFila.addView(boton_grabar,parametros_pegado_elemento_septima_fila);
 
 
         return linear_principal;
@@ -268,6 +309,12 @@ public class ActividadConfiguracion extends Activity {
         String topico= edit_text_topico.getText().toString();
         AlmacenDatosRAM.topicStr = topico;
 
+        String numero_datos= edit_text_numero_datos.getText().toString();
+        AlmacenDatosRAM.nDatos =  Integer.parseInt(numero_datos);
+
+        String numero_datos_graficar= edit_text_numero_datos_graficar.getText().toString();
+        AlmacenDatosRAM.nDatosGraficar =  Integer.parseInt(numero_datos_graficar);
+
 
         SharedPreferences prefs = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -275,9 +322,10 @@ public class ActividadConfiguracion extends Activity {
         editor.putString("usuario", AlmacenDatosRAM.USERNAME);
         editor.putString("pasword", AlmacenDatosRAM.PASSWORD);
         editor.putString("topico", AlmacenDatosRAM.topicStr);
+        editor.putInt("n_datos", AlmacenDatosRAM.nDatos);
+        editor.putInt("n_datos_graficar", AlmacenDatosRAM.nDatosGraficar);
         editor.commit();
 
     }
 
 }
-

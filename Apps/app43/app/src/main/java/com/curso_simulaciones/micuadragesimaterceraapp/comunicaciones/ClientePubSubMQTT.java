@@ -1,38 +1,10 @@
 package com.curso_simulaciones.micuadragesimaterceraapp.comunicaciones;
 
-/*
- * ==========================================================
- *   ADVERTENCIA IMPORTANTE PARA LOS ESTUDIANTES
- * ==========================================================
- *
- * En versiones antiguas de Android se usaba con frecuencia
- * la clase MqttAndroidClient junto con el archivo
- * org.eclipse.paho.android.service.jar.
- *
- * ➡️ A partir de Android 12 este enfoque dejó de ser seguro
- *    porque esa librería utiliza un componente interno
- *    llamado AlarmReceiver que ya no es aceptado por el
- *    sistema y produce errores de seguridad.
- *
- * ✅ La forma recomendada y “a prueba de futuro” es usar
- *    directamente la clase MqttAsyncClient que se encuentra
- *    en el archivo org.eclipse.paho.client.mqttv3.jar.
- *
- * Ventajas:
- *   - Funciona en Android 12, 13 y posteriores.
- *   - No necesita BroadcastReceiver ni configuraciones
- *     especiales en AndroidManifest.xml.
- *   - Es más simple y confiable para proyectos actuales.
- *
- * Por esta razón, en este curso usaremos MqttAsyncClient.
- * ==========================================================
- */
-
-
 import static android.content.ContentValues.TAG;
 
 import android.app.Activity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.curso_simulaciones.micuadragesimaterceraapp.datos.AlmacenDatosRAM;
 
@@ -49,12 +21,10 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 public class ClientePubSubMQTT implements MqttCallback, IMqttActionListener {
 
     private final Activity actividad;
-
     private static String MQTTHOST;
     private static String USERNAME;
     private static String PASSWORD;
     private String topicStr;
-
     private MqttAsyncClient client;
     private MqttConnectOptions options;
     private String datoString;
@@ -67,11 +37,24 @@ public class ClientePubSubMQTT implements MqttCallback, IMqttActionListener {
         topicStr = AlmacenDatosRAM.topicStr;
     }
 
-    // 1) Conectar
+    // 1) Conectar con validación previa
     public void conectar() {
+        // Validar que la configuración no esté vacía
+        if (MQTTHOST == null || MQTTHOST.trim().isEmpty()) {
+            AlmacenDatosRAM.conectado_PubSub = "ERROR: No has configurado el BROKER. Ve a AJUSTES.";
+            AlmacenDatosRAM.conectado = false;
+            mostrarToast(AlmacenDatosRAM.conectado_PubSub);
+            return;
+        }
+        if (topicStr == null || topicStr.trim().isEmpty()) {
+            AlmacenDatosRAM.conectado_PubSub = "ERROR: No has configurado el TÓPICO. Ve a AJUSTES.";
+            AlmacenDatosRAM.conectado = false;
+            mostrarToast(AlmacenDatosRAM.conectado_PubSub);
+            return;
+        }
+
         try {
             String clientId = MqttAsyncClient.generateClientId();
-
             client = new MqttAsyncClient(MQTTHOST, clientId, new MemoryPersistence());
             client.setCallback(this);
 
@@ -79,24 +62,35 @@ public class ClientePubSubMQTT implements MqttCallback, IMqttActionListener {
             options.setUserName(USERNAME);
             options.setPassword(PASSWORD.toCharArray());
             options.setCleanSession(true);
-            options.setAutomaticReconnect(true);   // reconexión propia
-            options.setKeepAliveInterval(60);      // segundos
+            options.setAutomaticReconnect(true);
+            options.setKeepAliveInterval(60);
 
-            client.connect(options, /*userContext*/null, /*callback*/this);
+            client.connect(options, null, this);
             AlmacenDatosRAM.conectado_PubSub = "Conectando con el broker...";
         } catch (MqttException e) {
-            AlmacenDatosRAM.conectado_PubSub = "Falla conexión con el broker...";
+            AlmacenDatosRAM.conectado_PubSub = "Falla conexión con el broker: " + e.getMessage();
             AlmacenDatosRAM.conectado = false;
             e.printStackTrace();
+            mostrarToast(AlmacenDatosRAM.conectado_PubSub);
+        } catch (Exception e) {
+            AlmacenDatosRAM.conectado_PubSub = "Error inesperado: " + e.getMessage();
+            AlmacenDatosRAM.conectado = false;
+            e.printStackTrace();
+            mostrarToast(AlmacenDatosRAM.conectado_PubSub);
         }
     }
 
-    // Éxito de connect()
-    @Override public void onSuccess(IMqttToken asyncActionToken) {
+    private void mostrarToast(String mensaje) {
+        actividad.runOnUiThread(() -> Toast.makeText(actividad, mensaje, Toast.LENGTH_LONG).show());
+    }
+
+    @Override
+    public void onSuccess(IMqttToken asyncActionToken) {
         try {
             client.subscribe(topicStr, 0);
             AlmacenDatosRAM.conectado_PubSub = "Suscripción al tópico exitosa";
             AlmacenDatosRAM.conectado = true;
+            actividad.runOnUiThread(() -> Toast.makeText(actividad, "Conectado al broker", Toast.LENGTH_SHORT).show());
         } catch (MqttException e) {
             AlmacenDatosRAM.conectado_PubSub = "Falla la suscripción al tópico...";
             AlmacenDatosRAM.conectado = false;
@@ -104,38 +98,44 @@ public class ClientePubSubMQTT implements MqttCallback, IMqttActionListener {
         }
     }
 
-    // Falla de connect()
-    @Override public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+    @Override
+    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
         Log.d(TAG, "Falla conexión", exception);
-        AlmacenDatosRAM.conectado_PubSub = "Falla conexión con el broker...";
+        AlmacenDatosRAM.conectado_PubSub = "Falla conexión con el broker: " + exception.getMessage();
         AlmacenDatosRAM.conectado = false;
+        mostrarToast(AlmacenDatosRAM.conectado_PubSub);
     }
 
-    // Callbacks MQTT
-    @Override public void connectionLost(Throwable cause) {
+    @Override
+    public void connectionLost(Throwable cause) {
         Log.d(TAG, "Conexión perdida", cause);
         AlmacenDatosRAM.conectado = false;
+        AlmacenDatosRAM.conectado_PubSub = "Conexión perdida. Reconectando...";
+        actividad.runOnUiThread(() -> Toast.makeText(actividad, "Conexión MQTT perdida", Toast.LENGTH_SHORT).show());
     }
 
-    @Override public void messageArrived(String topic, MqttMessage mqttMessage) {
+    @Override
+    public void messageArrived(String topic, MqttMessage mqttMessage) {
         if (AlmacenDatosRAM.conectado) {
             datoString = new String(mqttMessage.getPayload());
             AlmacenDatosRAM.conectado_PubSub = "Recibiendo datos...";
         }
     }
 
-    @Override public void deliveryComplete(IMqttDeliveryToken token) {
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
         Log.d(TAG, "Mensaje entregado");
     }
 
-    // 2) Leer mensaje
     public String leerString() {
         return datoString;
     }
 
-    // 3) Enviar mensajes
     public void setEnviarMensajes(byte[] datoBytesEnviar) {
-        if (!AlmacenDatosRAM.conectado) return;
+        if (!AlmacenDatosRAM.conectado) {
+            AlmacenDatosRAM.conectado_PubSub = "No conectado. No se pueden enviar datos.";
+            return;
+        }
         try {
             AlmacenDatosRAM.conectado_PubSub = "Enviando datos...";
             MqttMessage message = new MqttMessage(datoBytesEnviar);
@@ -144,10 +144,9 @@ public class ClientePubSubMQTT implements MqttCallback, IMqttActionListener {
             client.publish(topicStr, message);
         } catch (MqttException e) {
             e.printStackTrace();
+            AlmacenDatosRAM.conectado_PubSub = "Error al enviar: " + e.getMessage();
         }
     }
-
-// 4) Desconectar
 
     public void desconectar() {
         try {

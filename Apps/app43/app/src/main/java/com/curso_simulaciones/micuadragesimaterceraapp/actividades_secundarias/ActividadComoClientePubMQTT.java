@@ -1,4 +1,4 @@
-package com.curso_simulaciones.micuadragesimaterceraapp.Actividades_secundarias;
+package com.curso_simulaciones.micuadragesimaterceraapp.actividades_secundarias;
 
 import android.app.Activity;
 import android.graphics.Color;
