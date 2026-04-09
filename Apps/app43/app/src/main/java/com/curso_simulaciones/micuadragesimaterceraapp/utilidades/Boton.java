@@ -9,7 +9,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.widget.ImageView;
 
-public class Boton extends androidx.appcompat.widget.AppCompatImageView {
+public class Boton extends ImageView {
 
     private Bitmap imagen;
     Bitmap imagen_escalada = null;
@@ -71,6 +71,7 @@ public class Boton extends androidx.appcompat.widget.AppCompatImageView {
             imagen_escalada = escalarImagen(imagen, (int) (0.9f * escala), (int) (0.9f * escala));
 
         }
+
         int ex = (getWidth() - imagen_escalada.getWidth()) / 2;
         int ey = (getHeight() - imagen_escalada.getHeight()) / 2;
 

@@ -45,6 +45,8 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
 
         //actualizar preferencias
         actualizarPreferenciasMQTT();
+
+
         eventos();
 
 
@@ -87,7 +89,6 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
 
 
     private void crearElementosGUI() {
-
         entrar = new Boton(this);
         entrar.setImagen(R.drawable.entrar);
 
@@ -117,8 +118,7 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
         linear_layout_primera_fila.setOrientation(LinearLayout.HORIZONTAL);
         linear_layout_primera_fila.setGravity(Gravity.FILL);
         linear_layout_primera_fila.setBackgroundColor(Color.BLACK);
-        LinearLayout.LayoutParams parametros_primera_fila = new
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);//ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams parametros_primera_fila = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);//ViewGroup.LayoutParams.WRAP_CONTENT);
         parametros_primera_fila.weight = 9.0f;
         linear_layout_primera_fila.setLayoutParams(parametros_primera_fila);
 
@@ -190,6 +190,10 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
 
     }
 
+
+
+
+
     private void lanzarActividadComunicacion() {
 
         Intent intent = new Intent(this, ActividadComoClientePubMQTT.class);
@@ -228,3 +232,4 @@ public class ActividadPrincipalMiCuadragesimaTerceraApp extends Activity {
 
 
 }
+

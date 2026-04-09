@@ -88,6 +88,8 @@ public class DialogoSalir {
         linear_layout_medio.addView(si,parametros);
         linear_layout_medio.addView(no,parametros);
         //linear_layout_abajo.addView(no,parametros);
+
+
         linear_layout_principal.addView(linear_layout_arriba);
         linear_layout_principal.addView(linear_layout_medio);
         //linear_layout_principal.addView(linear_layout_abajo);
@@ -135,5 +137,6 @@ public class DialogoSalir {
         });
 
     }
-}
 
+
+}

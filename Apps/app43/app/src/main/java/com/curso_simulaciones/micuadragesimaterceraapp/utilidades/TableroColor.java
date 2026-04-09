@@ -22,11 +22,11 @@ public class TableroColor extends View {
 
         this.context = context;
 
+
         eventos();
     }
 
 
-    @SuppressLint("ClickableViewAccessibility")
     private void eventos(){
 
         this.setOnTouchListener(new View.OnTouchListener() {
@@ -99,7 +99,6 @@ public class TableroColor extends View {
         float ancho = this.getWidth();
         float alto = this.getHeight();
 
-
         float a=0;
 
         if( ancho>alto){
@@ -160,3 +159,4 @@ public class TableroColor extends View {
     }
 
 }
+
