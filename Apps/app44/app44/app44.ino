@@ -17,8 +17,8 @@ const float minimo = 0;
 const float maximo = 100;
 
 // ----- WiFi -----
-const char* ssid     = "FAMILIA_HERNANDEZ";
-const char* password = "1001446317";
+const char* ssid     = "Comunidad_UNMED";
+const char* password = "wifi_med_213";
 
 // ----- MQTT -----
 const char* mqtt_server  = "45.56.74.248";
